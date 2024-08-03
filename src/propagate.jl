@@ -123,14 +123,14 @@ function propagate(f,
     primal_args = structural_map(get_value, args)
     input_args = if keep_triples isa Val{true}
         structural_map(x -> strip_Δs(x; use_dual = Val(false)), args)
-    elseif keep_deltas isa Val{true} 
+    elseif keep_deltas isa Val{true}
         structural_map(strip_Δs, args)
     else
         primal_args
     end
     out = f(input_args...)
     val = structural_map(value, out)
-    Δs1 = structural_map(Base.Fix2(get_Δs, backendtype(st_rep)), out) 
+    Δs1 = structural_map(Base.Fix2(get_Δs, backendtype(st_rep)), out)
     # TODO: what does the only_vals do in the below and why?
     Δs_all = structural_map(Base.Fix2(get_Δs, backendtype(st_rep)), args;
         only_vals = Val{true}())
@@ -149,11 +149,11 @@ function propagate(f,
     Δs2 = map(map_func, Δs_coupled; out_rep = val, deriv)
 
     # TODO: make sure all FI backends support interface needed below
-    new_out = structural_map(out, Δs1, scalarize(Δs2; out_rep = val)) do leaf_out, leaf_Δs1, leaf_Δs2
+    new_out = structural_map(
+        out, Δs1, scalarize(Δs2; out_rep = val)) do leaf_out, leaf_Δs1, leaf_Δs2
         leaf_Δs = combine(backendtype(st_rep), (leaf_Δs1, leaf_Δs2))
         StochasticAD.StochasticTriple{tag(st_rep)}(value(leaf_out), delta(leaf_out),
             leaf_Δs)
     end
     return new_out
 end
-
