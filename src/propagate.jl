@@ -46,10 +46,12 @@ end
 
 Propagates `args` through a function `f`, handling stochastic triples by independently running `f` on the primal
 and the alternatives, rather than by inspecting the internals of `f` (which may possibly be unsupported by `StochasticAD`).
-Currently handles deterministic functions `f` with any input and output that is `fmap`-able by `Functors.jl`.
+Handles functions `f` with any input and output that is `fmap`-able by `Functors.jl`, including functions `f` that are closures
+over stochastic triples.
 If `f` has a continuously differentiable component, provide `keep_deltas = Val(true)`.
-If `f` may itself return stochastic triples even once perturbations have been stripped from `args`, 
-(e.g. because `f` closes over stochastic triples), then provide `keep_triples = Val(true)`.
+If continuous perturbations to `args` can cause discrete pertubations to be created within `f`, 
+then provide `keep_triples = Val(true)`.
+
 
 This functionality is orthogonal to dispatch: the idea is for this function to be the "backend" for operator 
 overloading rules based on dispatch. For example:
