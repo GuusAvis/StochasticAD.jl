@@ -624,6 +624,28 @@ end
         end
 
         test_propagate(f7, (rand(2, 2), 4.0), (rand(2, 2), 1.0); test_deltas = true)
+
+        function stoch_trip(val::Real, inf_pert::Real, fin_pert::Real, prob::Real)
+            Δs = StochasticAD.similar_new(StochasticAD.create_Δs(PrunedFIsBackend(), Int),
+                fin_pert, prob)
+            StochasticAD.StochasticTriple{0}(val, inf_pert, Δs)
+        end
+
+        f8(x) = x + stoch_trip(1., 0.1, 10., 100.)
+        f8(x::StochasticAD.StochasticTriple) = StochasticAD.propagate(f8, x)
+        f8() = (x = stoch_trip(2., 0., 20., 100.); f8(x))
+        samples = [f8() for _ in 1:10]
+        for s in samples
+            @test StochasticAD.value(s) == 3.
+            @test length(perturbations(s)) == 1
+            @test perturbations(s)[1].weight == 200.
+        end
+        # check that the Δ is sometimes 10 and sometimes 20,
+        # which requires the Δs of both the added triples to be taken into account
+        Δs = [perturbations(s)[1].Δ for s in samples]
+        @test 10. in Δs
+        @test 20. in Δs
+
     end
 end
 
