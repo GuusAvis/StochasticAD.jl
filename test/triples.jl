@@ -646,6 +646,37 @@ end
         @test 10. in Δs
         @test 20. in Δs
 
+        function f9(value_1, value_2, rand_var)
+            if value_1 < value_2
+                return (value_1 + rand(rand_var), value_2)
+            else
+                return (value_1, value_2 + rand(rand_var))
+            end
+        end
+
+        propagate_f9(value_1, value_2, rand_var) = StochasticAD.propagate((v1, v2) -> f(v1, v2, rand_var), value_1, value_2)
+
+        f9(value_1::StochasticTriple, value_2, rand_var) = propagate_f9(value_1, value_2, rand_var)
+        f9(value_1, value_2::StochasticTriple, rand_var) = propagate_f9(value_1, value_2, rand_var)
+        f9(value_1::StochasticTriple, value_2::StochasticTriple, rand_var) = propagate_f9(value_1, value_2, rand_var 
+
+        function g(p)
+            rand_var = Bernoulli(p)
+            value_1 = 0
+            value_2 = 2
+            for _ in 1:10
+                value_1, value_2 = f(value_1, value_2, rand_var)
+            end
+            return value_1, value_2
+        end
+
+        N = 100
+        derivs = [derivative_estimate(p -> sum(g(p)), 0.5)]
+        standard_error = std(derivs) / sqrt(N)
+        estimate = mean(derivs)
+        expected_value = 10.01  # obtained by running for N = 1E6
+        @test estimate - 5standard_error ≤ expected_value ≤ estimate + 5standard_error
+
     end
 end
 
