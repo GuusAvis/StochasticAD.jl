@@ -658,14 +658,14 @@ end
 
         f9(value_1::StochasticTriple, value_2, rand_var) = propagate_f9(value_1, value_2, rand_var)
         f9(value_1, value_2::StochasticTriple, rand_var) = propagate_f9(value_1, value_2, rand_var)
-        f9(value_1::StochasticTriple, value_2::StochasticTriple, rand_var) = propagate_f9(value_1, value_2, rand_var 
+        f9(value_1::StochasticTriple, value_2::StochasticTriple, rand_var) = propagate_f9(value_1, value_2, rand_var)
 
         function g(p)
             rand_var = Bernoulli(p)
             value_1 = 0
             value_2 = 2
             for _ in 1:10
-                value_1, value_2 = f(value_1, value_2, rand_var)
+                value_1, value_2 = f9(value_1, value_2, rand_var)
             end
             return value_1, value_2
         end
